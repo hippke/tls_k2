@@ -61,7 +61,7 @@ if __name__ == '__main__':
         # Detrend data and remove high outliers
         trend = scipy.signal.medfilt(flux, MEDIAN_KERNEL_WINDOW)
         flux = flux /trend
-        flux = sigma_clip(flux, sigma_upper=2, sigma_lower=6)
+        flux = sigma_clip(flux, sigma_upper=3, sigma_lower=6)
 
         # Search flushed data for additional planets
         ab, mass, mass_min, mass_max, radius, radius_min, radius_max = catalog_info(EPIC_id)
