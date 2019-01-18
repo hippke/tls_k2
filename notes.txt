@@ -3,3 +3,5 @@ Mayo 2018: First, low-frequency variations were removed via a basis spline and o
 Crossfield 2016: Gaussian process with a squared-exponential kernel.
 
 Vanderburg 2017: robustly fitting a basis spline to the light curve with breakpoints every 0.75 days and dividing it away
+
+Re-run EVERERST with known transits to obtain correct transit depth (is 10% off)
