@@ -21,120 +21,20 @@ from transitleastsquares import (
 
 """
 
-7.  
-Robust (outlier-resistant) means. The uncertainty on a sample median is $\sqrt{\pi /2}\approx 1.253$ times larger than the uncertainty on a sample mean, so in principle, by using robust means instead of medians in our input representation, we could boost the S/N the model sees by up to 25%.
-https://iopscience.iop.org/article/10.3847/1538-3881/aa9e09
-https://en.wikipedia.org/wiki/Median#Sampling_distribution
-https://stats.stackexchange.com/questions/353347/representing-the-uncertainty-of-the-median-in-a-clean-way
-https://newonlinecourses.science.psu.edu/stat414/node/316/
-https://physics.stackexchange.com/questions/292871/uncertainty-propagation-upon-taking-the-median
-http://mathworld.wolfram.com/StatisticalMedian.html
-
-Optimal Median Smoothing (1995)
-W. Härdle and W. Steiger
-Journal of the Royal Statistical Society. Series C (Applied Statistics)
-Vol. 44, No. 2 (1995), pp. 258-264
-DOI: 10.2307/2986349
-
-Benannt nach der Implementierung von Berwin A. Turlach (1995, unpublished)
-
-
-Although the moving average function gives the best noise reduction it is unsuitable for smoothing data which has curvature over m points. A quadratic filter function is unsuitable for getting a derivative of a data curve with an inflection point because a quadratic polynomial does not have one. The optimal choice of polynomial order and number of convolution coefficients will be a compromise between noise reduction and distortion.[27]
-
-
 
 
 zu schützende länge: aus T14 (stellar density)
-
 gaps: neue spline-stücke verwenden
-
 in iterativer planeten suche: nach jeder maskierung NEU DETRENDEN!
-
 It is commonly accepted that the first mathematical reference to splines is the 1946 paper by Schoenberg, which is probably the first place that the word "spline" is used in connection with smooth, piecewise polynomial approximation.
 Schoenberg, Isaac J. (1946). "Contributions to the Problem of Approximation of Equidistant Data by Analytic Functions: Part A.—On the Problem of Smoothing or Graduation. A First Class of Analytic Approximation Formulae" (PDF). Quarterly of Applied Mathematics. 4 (2): 45–99.
 Schoenberg, Isaac J. (1946). "Contributions to the Problem of Approximation of Equidistant Data by Analytic Functions: Part B.—On the Problem of Osculatory Interpolation. A Second Class of Analytic Approximation Formulae" (PDF). Quarterly of Applied Mathematics. 4 (2): 112–141.
-
 splines were established by
 Ferguson, James C. (1964). "Multivariable Curve Interpolation". Journal of the ACM. 11 (2): 221–228. doi:10.1145/321217.321225.
 Ahlberg, J. Harold; Nielson, Edwin N.; Walsh, Joseph L. (1967). The Theory of Splines and Their Applications. New York: Academic Press. ISBN 0-12-044750-9.
 
-Univariate B-Splines, i.e. B-Splines where the knot positions lie in a single dimension
 
-Cardinal B-spline
-A cardinal B-spline has a constant separation, h, between knots. 
 
-- discontinuity threshold. make custom knot locations. better: use segments
-- Why not median?
-    - not efficient (paper 20.02. gelesen) compared to robust mean
-    - robust mean is asymptotically efficient (95% with 1.35 at Huber)
-    - It is advised to set the parameter epsilon to 1.35 to achieve 95% statistical efficiency.
-    - No problem toward the edges (median: wrap-around/shrink/constant)
-    - for periodic signals with a period shorter than the median width, it will not fit well
-1. Technically speaking, we do not NEED a normal distribution for regression analysis. 
-2. We simply require a BLUE Estimator (Best Linear Unbiased Estimator). 
-3. However, outliers can significantly change the shape of our distribution, and hence our overall results
-==> Show kernel density/distribution of detrended y with transits, flares and outliers. Not Gaussian!
-==> Show Huber loss next to it: https://en.wikipedia.org/wiki/Huber_loss
-Write about Huber Regressor
-wieviele outlier sind ok?
-Peter J. Huber, Elvezio M. Ronchetti, Robust Statistics Concomitant scale estimates, pg 172
-@misc{Owen2007,
-  doi = {10.1090/conm/443/08555},
-  url = {https://doi.org/10.1090/conm/443/08555},
-  year  = {2007},
-  publisher = {American Mathematical Society},
-  pages = {59--71},
-  author = {Art B. Owen},
-  title = {A robust hybrid of lasso and ridge regression}
-}
-@article{Huber1964,
-  doi = {10.1214/aoms/1177703732},
-  url = {https://doi.org/10.1214/aoms/1177703732},
-  year  = {1964},
-  month = {mar},
-  publisher = {Institute of Mathematical Statistics},
-  volume = {35},
-  number = {1},
-  pages = {73--101},
-  author = {Peter J. Huber},
-  title = {Robust Estimation of a Location Parameter},
-  journal = {The Annals of Mathematical Statistics}
-}
-@book{huber1981robust,
-  title={Robust Statistics},
-  author={Huber, P.J.},
-  isbn={9780471418054},
-  lccn={80018627},
-  series={Wiley Series in Probability and Statistics},
-  url={https://books.google.de/books?id=hVbhlwEACAAJ},
-  year={1981},
-  publisher={Wiley}
-}
-@book{huber2011robust,
-  title={Robust Statistics},
-  author={Huber, P.J. and Ronchetti, E.M.},
-  isbn={9781118210338},
-  series={Wiley Series in Probability and Statistics},
-  url={https://books.google.mw/books?id=j1OhquR\_j88C},
-  year={2011},
-  publisher={Wiley}
-}
-(page 172)
-@ARTICLE{2014arXiv1406.1717S,
-       author = {{Suomela}, Jukka},
-        title = "{Median Filtering is Equivalent to Sorting}",
-      journal = {arXiv e-prints},
-     keywords = {Computer Science - Data Structures and Algorithms},
-         year = "2014",
-        month = "Jun",
-          eid = {arXiv:1406.1717},
-        pages = {arXiv:1406.1717},
-archivePrefix = {arXiv},
-       eprint = {1406.1717},
- primaryClass = {cs.DS},
-       adsurl = {https://ui.adsabs.harvard.edu/\#abs/2014arXiv1406.1717S},
-      adsnote = {Provided by the SAO/NASA Astrophysics Data System}
-}
 good explanation of huber function:
 http://statweb.stanford.edu/~owen/reports/hhu.pdf
 s. 3f
@@ -151,14 +51,14 @@ Ich hatte einmal erwähnt, dass es beim sliding median einen schnelleren Weg gib
 Benchmark SciPy versus Python-Turlach:
 https://arxiv.org/abs/1406.1717
 Eine Implementierung gibt es z.B. hier: https://github.com/suomela/median-filter
-Mein Unterbewusstsein brodelt gerade im Detrending, deshalb ist die Mail auch ein "reminder" für mich :-)
-Michael
 [1] Benannt nach der Implementierung von Berwin A. Turlach (1995, unpublished), Idee aus:
 Optimal Median Smoothing (1995)
 W. Härdle and W. Steiger
 Journal of the Royal Statistical Society. Series C (Applied Statistics)
 Vol. 44, No. 2 (1995), pp. 258-264
 DOI: 10.2307/2986349
+
+Benannt nach der Implementierung von Berwin A. Turlach (1995, unpublished)
 """
 
 class BSplineFeatures(TransformerMixin):
@@ -221,7 +121,7 @@ def load_file(filename):
         'Time series from', format(min(t), '.1f'), 
         'to', format(max(t), '.1f'), 
         'with a duration of', format(max(t)-min(t), '.1f'), 'days')
-    return t, y, hdu[0].header['TICID']  # filename[36:45]
+    return t, y, hdu[0].header['TICID']  # filename[36:45]  "trappist"
 
 #hlsp_everest_k2_llc_246599598-c13_kepler_v2.0_lc
 
@@ -239,13 +139,13 @@ def main():
     # bad           0.01    1546
 
 
-    #path = 'P:/P/Dok/tess_alarm/'
+    path = 'P:/P/Dok/tess_alarm/'
     #path = 'P:/P/Dok/k2fits/'
-    path = '/home/michael/Downloads/tess-data-alerts/'
+    #path = '/home/michael/Downloads/tess-data-alerts/'
 
     os.chdir(path)
     for file in glob.glob("*.fits"):
-        #if "00230982885" in file:
+        #if "ktwo200164267-c12_llc" in file:
         if 1==1:
             converged = False
             
@@ -272,7 +172,7 @@ def main():
                 std = numpy.std(y_detrended)
 
                 plt.figure()
-                fig, axes = plt.subplots(4, 1, sharex=True, figsize=(6, 10))
+                fig, axes = plt.subplots(5, 1, figsize=(6, 10))
                 ax = axes[0]
                 #ax.plot(X[:, 0]-t.min(), y_clipped, 'o', ms=1, c='black', alpha=0.5)
                 ax.plot(t-t.min(), y_clipped, 'o', ms=1, c='black', alpha=0.5)
@@ -334,10 +234,38 @@ def main():
                 ax.set_ylim(0, 0.06)
                 ax.set_xlabel("Period (days)")
                 ax.set_ylabel("Power")
-
+                #plt.show()
+                
+                ax = axes[4]
+                #from scipy.stats import norm
+                #x_d = np.linspace(-4, 8, 1000)
+                #density = sum(norm(xi).pdf(x_d) for xi in y_detrended)
+                #plt.fill_between(x_d, density, alpha=0.5)
+                #plt.plot(y_detrended, np.full_like(y_detrended, -0.1), '|k', markeredgewidth=1)
+                #bins = 50
+                
+                from scipy.stats import norm
+                import matplotlib.mlab as mlab
+                #(mu, sigma) = norm.fit(y_detrended)
+                n, bins, patches = ax.hist(y_detrended, int(len(t)/200))
+                plt.plot(
+                    (numpy.mean(y_detrended), numpy.mean(y_detrended)),
+                    (0, max(n)),
+                    color='orange'
+                    )
+                plt.plot(
+                    (numpy.median(y_detrended), numpy.median(y_detrended)),
+                    (0, max(n)),
+                    linestyle='dashed',
+                    color='red'
+                    )
+                #ax.plot(bins, mlab.normpdf(bins, mu, sigma), 'r--', linewidth=2)
+                
                 plt.savefig(str(TIC_ID) + ".png", bbox_inches='tight')
                 plt.clf()
                 plt.close('all')
+
+
 
 if __name__ == "__main__":
     main()
