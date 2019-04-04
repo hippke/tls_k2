@@ -393,10 +393,10 @@ def make_figure(KOI, planet_number, results, t, y, y_filt, trend, rawtime, rawfl
     #    valid = False
     #    print('Vetting fail! First or last transit touches edge of time series')
     #valid = True
-    if valid:
-        figure_out_path = str(KOI) + '_0' + str(planet_number)
+    if valid:  # 5-50d
+        figure_out_path = 'GOOD5-50d_' + str(KOI) + '_0' + str(planet_number)
     else:
-        figure_out_path = '_FAIL_' + str(KOI) + '_0' + str(planet_number)
+        figure_out_path = '_FAIL5-50d_' + str(KOI) + '_0' + str(planet_number)
 
     plt.savefig(figure_out_path + '.png', bbox_inches='tight')
     print('Figure made:', figure_out_path)
