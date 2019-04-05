@@ -19,7 +19,7 @@ import psutil
 import sys
 # 3611 unique KICs in  "cumulative_2019.03.10_11.04.40.ods"
 from multiprocessing import Pool
-
+import glob
 
 
 
@@ -316,6 +316,7 @@ def make_figure(KOI, planet_number, results, t, y, y_filt, trend, rawtime, rawfl
 
     plt.savefig(figure_out_path + '.png', bbox_inches='tight')
     print('Figure made:', figure_out_path)
+    plt.close
 
     return valid
 
@@ -376,187 +377,182 @@ def get_planets(KIC):
 
 def seach_one_koi(KOI):
 
-    print('Working on file', KOI)
-    time, flux = loadkoi(str(KOI))
+    # Check if vetting file exists already
+    if ("_" + str(KOI) + '_0') in " ".join(glob.glob("*.png")):
+        print('Vetting sheet for this KOI exists already, skipping KOI', KOI)
+    else:
+        print('Working on file', KOI)
 
-    #KOI = 1206.01
-    #print(catalog["KOI"])
-    #catalog_KOIs = 
-    #catalog_KOIs = round(catalog_KOIs, 0)
-    #print(catalog_KOIs)
+        time, flux = loadkoi(str(KOI))
 
-    #print(int(float(KOI)))
-    #print(catalog["KOI"].astype(int)[:20])
+        #KOI = 1206.01
+        #print(catalog["KOI"])
+        #catalog_KOIs = 
+        #catalog_KOIs = round(catalog_KOIs, 0)
+        #print(catalog_KOIs)
 
-    row = numpy.argmax(catalog["KOI"].astype(int)==int(float(KOI)))
-    KIC = catalog["KIC"][row]
-    print('row', row)
-    print('KIC', KIC)
+        #print(int(float(KOI)))
+        #print(catalog["KOI"].astype(int)[:20])
 
-    max_t14 = T14(
-        R_s=catalog["R_star"][row],
-        M_s=catalog["mass"][row],
-        P=period_max)
-    window = 3 * max_t14
+        row = numpy.argmax(catalog["KOI"].astype(int)==int(float(KOI)))
+        KIC = catalog["KIC"][row]
+        print('row', row)
+        print('KIC', KIC)
 
-    print(
-        'R_star, mass, max_t14, window',
-        catalog["R_star"][row],
-        catalog["mass"][row],
-        max_t14,
-        window)
+        max_t14 = T14(
+            R_s=catalog["R_star"][row],
+            M_s=catalog["mass"][row],
+            P=period_max)
+        window = 3 * max_t14
 
-    #plt.scatter(time, flux, s=1)
-    #plt.show()
-    #print(time)
-    #print(flux)
+        print(
+            'R_star, mass, max_t14, window',
+            catalog["R_star"][row],
+            catalog["mass"][row],
+            max_t14,
+            window)
 
-    if time is not None:
-
-        # Remove known planets
-        periods, t0s, tdurs = get_planets(KIC)
-        print('periods', periods)
-        for no in range(len(periods)):
-            print('Removing planet', no+1, periods[no], t0s[no], tdurs[no])
-            
-            intransit = transit_mask(
-                time,
-                periods[no],
-                2 * tdurs[no],
-                t0s[no]
-                )
-            flux = flux[~intransit]
-            time = time[~intransit]
-            time, flux = cleaned_array(time, flux)
-
-        print('Next planet is number', no+2)
-
-        # Detrend data and remove high outliers
-
-        print('Detrending with window...', window)
+        #plt.scatter(time, flux, s=1)
+        #plt.show()
         #print(time)
         #print(flux)
-        trend1 = trend(time, flux, window=window, c=5)
-        #plt.scatter(time, flux, s=1, color='black')
-        #plt.plot(time, trend1, color='red')
-        #plt.show()
+
+        if time is not None:
+
+            # Remove known planets
+            periods, t0s, tdurs = get_planets(KIC)
+            print('periods', periods)
+            for no in range(len(periods)):
+                print('Removing planet', no+1, periods[no], t0s[no], tdurs[no])
+                
+                intransit = transit_mask(
+                    time,
+                    periods[no],
+                    2 * tdurs[no],
+                    t0s[no]
+                    )
+                flux = flux[~intransit]
+                time = time[~intransit]
+                time, flux = cleaned_array(time, flux)
+
+            print('Next planet is number', no+2)
+
+            # Detrend data and remove high outliers
+
+            print('Detrending with window...', window)
+            #print(time)
+            #print(flux)
+            trend1 = trend(time, flux, window=window, c=5)
+            #plt.scatter(time, flux, s=1, color='black')
+            #plt.plot(time, trend1, color='red')
+            #plt.show()
 
 
-        #trend = scipy.signal.medfilt(flux, 31)
-        #trend = scipy.signal.savgol_filter(trend, 25, 2)
-        rawflux = flux.copy()
-        rawtime = time.copy()
-        y_filt = flux / trend1
-        y_filt = sigma_clip(y_filt, sigma_upper=3, sigma_lower=1e10)
-        time, y_filt = cleaned_array(time, y_filt)
+            #trend = scipy.signal.medfilt(flux, 31)
+            #trend = scipy.signal.savgol_filter(trend, 25, 2)
+            rawflux = flux.copy()
+            rawtime = time.copy()
+            y_filt = flux / trend1
+            y_filt = sigma_clip(y_filt, sigma_upper=3, sigma_lower=1e10)
+            time, y_filt = cleaned_array(time, y_filt)
 
-        #plt.close()
-        #plt.scatter(time, y_filt, s=1, color='black')
-        #plt.show()
+            #plt.close()
+            #plt.scatter(time, y_filt, s=1, color='black')
+            #plt.show()
 
-        a = catalog["ld1"][row]
-        b = catalog["ld2"][row]
-        print('LD ab = ', a, b)
-        model = transitleastsquares(time, y_filt)
-        results = model.power(
-            #n_transits_min=1,
-            u=(a, b),
-            R_star=catalog["R_star"][row],
-            R_star_max=catalog["R_star"][row] + 2 * catalog["rad_up"][row],
-            # sign is OK, is negative in catalog:
-            R_star_min=catalog["R_star"][row] + 2 * catalog["rad_down"][row],
-            M_star=catalog["mass"][row],
-            M_star_max=catalog["mass"][row] + 2 * catalog["mass_up"][row],
-            M_star_min=catalog["mass"][row] + 2 * catalog["mass_down"][row],
-            oversampling_factor=5,
-            duration_grid_step=1.05,
-            use_threads=1,
-            period_min=period_min,
-            period_max=period_max,
-            show_progress_bar=False,
-            T0_fit_margin=0.1
-            )
-        tls_worked = True
-            #except ValueError:
-            #    tls_worked = False
-
-        valid = True
-        if tls_worked:
-            # Check if phase space has gaps
-            bins = numpy.linspace(0, 1, 100)
-            digitized = numpy.digitize(results.folded_phase, bins)
-            bin_means = [results.folded_phase[digitized == i].mean() 
-                for i in range(1, len(bins))]
-            #print('bin_means', bin_means)
-            if numpy.isnan(bin_means).any():
-                print('Vetting fail! Phase bins contain NaNs')
-                valid = False
-
-            if results.distinct_transit_count==1 and results.transit_count >= 2:
-                valid = False
-                print('Vetting fail! results.distinct_transit_count==1 and results.transit_count == 2')
-            if results.distinct_transit_count==2 and results.transit_count >= 3:
-                valid = False
-                print('Vetting fail! results.distinct_transit_count==2 and results.transit_count == 3')
-            if results.SDE < 8 :
-                valid = False
-                print('Vetting fail! results.SDE < 8', results.SDE)
-            if results.snr < 7:
-                valid = False
-                print('Vetting fail! results.snr < 7', results.snr)
-
-            upper_transit_depths = results.transit_depths + results.transit_depths_uncertainties
-            if results.transit_count == 2 and max(upper_transit_depths) > 1:
-                valid = False
-                print('Vetting fail! 2 transits, only 1 significant')
-
-            upper_transit_depths = results.transit_depths + results.transit_depths_uncertainties
-            if results.transit_count == 3 and max(upper_transit_depths) > 1:
-                valid = False
-                print('Vetting fail! 3 transits, not all 3 significant')
-
-            upper_transit_depths = results.transit_depths + results.transit_depths_uncertainties
-            if results.transit_count == 4 and max(upper_transit_depths) > 1:
-                valid = False
-                print('Vetting fail! 4 transits, not all 4 significant')
-
-            if results.depth < 0.95:
-                valid = False
-                print('Vetting fail! Transit depth < 0.95', results.depth)
-
-            print('Signal detection efficiency (SDE):', format(results.SDE, '.1f'))
-            print('SNR:', format(results.snr, '.1f'))
-            print('Search completed')
-            #if valid:
-            print('Attempting figure...')
-            make_figure(
-                KOI=str(KOI),
-                planet_number=no+2,
-                results=results,
-                t=time,
-                y=flux,
-                y_filt=y_filt,
-                trend=trend1,
-                rawtime=rawtime,
-                rawflux=rawflux,
-                catalog=catalog,
-                row=row,
-                valid=valid
+            a = catalog["ld1"][row]
+            b = catalog["ld2"][row]
+            print('LD ab = ', a, b)
+            model = transitleastsquares(time, y_filt)
+            results = model.power(
+                #n_transits_min=1,
+                u=(a, b),
+                R_star=catalog["R_star"][row],
+                R_star_max=catalog["R_star"][row] + 2 * catalog["rad_up"][row],
+                # sign is OK, is negative in catalog:
+                R_star_min=catalog["R_star"][row] + 2 * catalog["rad_down"][row],
+                M_star=catalog["mass"][row],
+                M_star_max=catalog["mass"][row] + 2 * catalog["mass_up"][row],
+                M_star_min=catalog["mass"][row] + 2 * catalog["mass_down"][row],
+                oversampling_factor=5,
+                duration_grid_step=1.05,
+                use_threads=1,
+                period_min=period_min,
+                period_max=period_max,
+                show_progress_bar=False,
+                T0_fit_margin=0.1
                 )
-            #else:
-            #    print('No figure made, vetting failed!')
-        else:
-            print('TLS failed')
+            tls_worked = True
+                #except ValueError:
+                #    tls_worked = False
 
-        process = psutil.Process(os.getpid())
-        ram_mb = process.memory_info().rss / 2**20
-        print('RAM (MB)', ram_mb)
-        if ram_mb > 25000:
-            sys.exit()
+            valid = True
+            if tls_worked:
+                # Check if phase space has gaps
+                bins = numpy.linspace(0, 1, 100)
+                digitized = numpy.digitize(results.folded_phase, bins)
+                bin_means = [results.folded_phase[digitized == i].mean() 
+                    for i in range(1, len(bins))]
+                #print('bin_means', bin_means)
+                if numpy.isnan(bin_means).any():
+                    print('Vetting fail! Phase bins contain NaNs')
+                    valid = False
 
-    #plt.close()
-    #except:
-    #    print('Failed for', EPIC_id)
+                if results.distinct_transit_count==1 and results.transit_count >= 2:
+                    valid = False
+                    print('Vetting fail! results.distinct_transit_count==1 and results.transit_count == 2')
+                if results.distinct_transit_count==2 and results.transit_count >= 3:
+                    valid = False
+                    print('Vetting fail! results.distinct_transit_count==2 and results.transit_count == 3')
+                if results.SDE < 8 :
+                    valid = False
+                    print('Vetting fail! results.SDE < 8', results.SDE)
+                if results.snr < 7:
+                    valid = False
+                    print('Vetting fail! results.snr < 7', results.snr)
+
+                upper_transit_depths = results.transit_depths + results.transit_depths_uncertainties
+                if results.transit_count == 2 and max(upper_transit_depths) > 1:
+                    valid = False
+                    print('Vetting fail! 2 transits, only 1 significant')
+
+                upper_transit_depths = results.transit_depths + results.transit_depths_uncertainties
+                if results.transit_count == 3 and max(upper_transit_depths) > 1:
+                    valid = False
+                    print('Vetting fail! 3 transits, not all 3 significant')
+
+                upper_transit_depths = results.transit_depths + results.transit_depths_uncertainties
+                if results.transit_count == 4 and max(upper_transit_depths) > 1:
+                    valid = False
+                    print('Vetting fail! 4 transits, not all 4 significant')
+
+                if results.depth < 0.95:
+                    valid = False
+                    print('Vetting fail! Transit depth < 0.95', results.depth)
+
+                print('Signal detection efficiency (SDE):', format(results.SDE, '.1f'))
+                print('SNR:', format(results.snr, '.1f'))
+                print('Search completed')
+                #if valid:
+                print('Attempting figure...')
+                make_figure(
+                    KOI=str(KOI),
+                    planet_number=no+2,
+                    results=results,
+                    t=time,
+                    y=flux,
+                    y_filt=y_filt,
+                    trend=trend1,
+                    rawtime=rawtime,
+                    rawflux=rawflux,
+                    catalog=catalog,
+                    row=row,
+                    valid=valid
+                    )
+                #else:
+                #    print('No figure made, vetting failed!')
+            else:
+                print('TLS failed')
 
 
 if __name__ == '__main__':
