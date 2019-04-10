@@ -587,6 +587,6 @@ if __name__ == '__main__':
     iterator = unique_kois_remaining["KOI"].astype(float)
     print(iterator)
 
-
-    pool = Pool(processes=1) 
-    pool.map(seach_one_koi, iterator)
+    seach_one_koi(iterator[1])
+    #pool = Pool(processes=1) 
+    #pool.map(seach_one_koi, iterator)
