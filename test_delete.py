@@ -379,8 +379,7 @@ def seach_one_koi(KOI):
 
     # Check if vetting file exists already
     figure_out_path = '_FAIL50-1500d_' + str(KOI) + '_0'
-    if figure_out_path + '_0' in " ".join(glob.glob("*.png")):
-        print('Vetting sheet for this KOI exists already, skipping KOI', KOI)
+    if 1 == 1:
     else:
         print('Working on file', KOI)
 
@@ -588,5 +587,3 @@ if __name__ == '__main__':
     print(iterator)
 
     seach_one_koi(iterator[1])
-    #pool = Pool(processes=1) 
-    #pool.map(seach_one_koi, iterator)
