@@ -378,8 +378,9 @@ def get_planets(KIC):
 def seach_one_koi(KOI):
 
     # Check if vetting file exists already
-    figure_out_path = '_FAIL5-50d_' + str(KOI) + '_0'
-    if figure_out_path in " ".join(glob.glob("*.png")):
+    figure_out_path = '_FAIL5-50d_' + str(KOI)
+    figure_out_path2 = 'GOOD5-50d_' + str(KOI)
+    if figure_out_path in " ".join(glob.glob("*.png")) or figure_out_path2 in " ".join(glob.glob("*.png")):
         print('Vetting sheet for this KOI exists already, skipping KOI', KOI)
     else:
         print('Working on file', KOI)
